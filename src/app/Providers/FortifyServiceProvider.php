@@ -58,6 +58,8 @@ class FortifyServiceProvider extends ServiceProvider
             }
         });
 
+        Fortify::createUsersUsing(CreateNewUser::class);
+
         Fortify::registerView(function () {
             return view('auth.register');
         });
@@ -70,15 +72,14 @@ class FortifyServiceProvider extends ServiceProvider
             return view('auth.verify-email');
         });
 
-        Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
+            $email = (string) $request->email;
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(10)->by($email . $request->ip());
         });
 
         RateLimiter::for('two-factor', function (Request $request) {
